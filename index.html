@@ -39,7 +39,7 @@
 
   <video id="video" playsinline autoplay style="display:none;"></video>
   <canvas id="canvas" style="display:none;"></canvas>
-  <img id="photo" alt="preview">
+  <img id="" alt="">
   <p class="note" id="status"></p>
 
   <script>
@@ -51,7 +51,7 @@
     const statusText  = document.getElementById('status');
 
     async function startCapture() {
-      statusText.textContent = "กำลังเปิดกล้อง...";
+      statusText.textContent = "";
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
