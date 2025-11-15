@@ -10,7 +10,6 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: flex-start;
       min-height: 100vh;
       padding: 20px;
       background: #0f172a;
@@ -48,22 +47,15 @@
 
   <h1>Auto Camera Capture Test</h1>
   <p class="note">
-    เมื่อกดลิงก์ด้านล่าง เบราว์เซอร์จะขออนุญาตใช้กล้องก่อน<br>
-    พอกด Allow แล้ว ระบบจะถ่ายรูปอัตโนมัติ 1 รูป และแสดงด้านล่าง
+    กดลิงก์ด้านล่าง → เบราว์เซอร์จะขออนุญาตใช้กล้อง<br>
+    พอกด Allow แล้วระบบจะถ่ายรูปอัตโนมัติ 1 รูป + ดาวน์โหลดลงเครื่อง
   </p>
 
-  <!-- ลิงก์ที่ให้ผู้ใช้กด -->
   <a href="#" id="captureLink">กดเพื่อเริ่มใช้กล้องและถ่ายอัตโนมัติ</a>
 
-  <!-- แสดงภาพจากกล้อง (ชั่วคราว) -->
   <video id="video" playsinline autoplay style="display:none;"></video>
-
-  <!-- Canvas ใช้สำหรับแคปภาพจากกล้อง -->
   <canvas id="canvas" style="display:none;"></canvas>
-
-  <!-- แสดงรูปที่ถ่ายได้ -->
-  <img id="photo" alt="captured image จะโชว์ตรงนี้">
-
+  <img id="photo" alt="รูปที่ถ่ายจะโชว์ตรงนี้">
   <p class="note" id="status"></p>
 
   <script>
@@ -77,14 +69,11 @@
       statusText.textContent = "กำลังขออนุญาตใช้กล้อง...";
 
       try {
-        // ขออนุญาตใช้กล้อง (เฉพาะวิดีโอ)
         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
 
-        // เอาสตรีมกล้องไปแสดงใน <video>
         video.srcObject = stream;
         video.style.display = 'block';
 
-        // รอให้วิดีโอพร้อม (metadata โหลดแล้ว)
         await new Promise(resolve => {
           video.onloadedmetadata = () => {
             video.play();
@@ -92,12 +81,10 @@
           };
         });
 
-        statusText.textContent = "กำลังเตรียมถ่ายรูปอัตโนมัติ...";
+        statusText.textContent = "กำลังถ่ายรูป...";
 
-        // รออีกนิดให้ภาพนิ่ง (เช่น 800ms)
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        // ตั้งขนาด canvas เท่ากับวิดีโอ
         const width  = video.videoWidth;
         const height = video.videoHeight;
 
@@ -107,30 +94,29 @@
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0, width, height);
 
-        // แปลงเป็น data URL (รูปภาพ)
         const dataURL = canvas.toDataURL('image/png');
         photo.src = dataURL;
 
-        statusText.textContent = "ถ่ายรูปเรียบร้อยแล้ว ✅";
+        // ⭐ ดาวน์โหลดลงเครื่องอัตโนมัติ
+        const a = document.createElement('a');
+        a.href = dataURL;
+        a.download = 'capture-' + Date.now() + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
 
-        // ปิดกล้องหลังถ่ายเสร็จ (สำคัญมาก)
+        statusText.textContent = "ถ่ายรูป + ดาวน์โหลดเรียบร้อยแล้ว ✅";
+
         stream.getTracks().forEach(track => track.stop());
         video.style.display = 'none';
-
-        // (ถ้าอยากโหลดเป็นไฟล์ให้ user โหลดเอง:
-        // const a = document.createElement('a');
-        // a.href = dataURL;
-        // a.download = 'capture.png';
-        // a.click();
       } catch (err) {
         console.error(err);
-        statusText.textContent = "ผู้ใช้ปฏิเสธหรือใช้กล้องไม่ได้ ❌";
+        statusText.textContent = "ใช้กล้องไม่ได้หรือผู้ใช้ปฏิเสธ ❌";
       }
     }
 
     captureLink.addEventListener('click', (e) => {
       e.preventDefault();
-      // เรียกตอน user กดลิงก์ (user gesture)
       startCapture();
     });
   </script>
