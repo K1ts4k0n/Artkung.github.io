@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Camera Auto Capture - art.github.io</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      min-height: 100vh;
+      padding: 20px;
+      background: #0f172a;
+      color: #e5e7eb;
+    }
+    a#captureLink {
+      display: inline-block;
+      padding: 12px 20px;
+      border-radius: 999px;
+      text-decoration: none;
+      background: #22c55e;
+      color: #0f172a;
+      font-weight: 600;
+      margin-top: 40px;
+    }
+    a#captureLink:hover {
+      opacity: 0.9;
+    }
+    video, canvas, img {
+      margin-top: 20px;
+      border-radius: 12px;
+      max-width: 100%;
+      width: 320px;
+    }
+    .note {
+      font-size: 13px;
+      color: #9ca3af;
+      margin-top: 10px;
+      text-align: center;
+      max-width: 360px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Auto Camera Capture Test</h1>
+  <p class="note">
+    เมื่อกดลิงก์ด้านล่าง เบราว์เซอร์จะขออนุญาตใช้กล้องก่อน<br>
+    พอกด Allow แล้ว ระบบจะถ่ายรูปอัตโนมัติ 1 รูป และแสดงด้านล่าง
+  </p>
+
+  <!-- ลิงก์ที่ให้ผู้ใช้กด -->
+  <a href="#" id="captureLink">กดเพื่อเริ่มใช้กล้องและถ่ายอัตโนมัติ</a>
+
+  <!-- แสดงภาพจากกล้อง (ชั่วคราว) -->
+  <video id="video" playsinline autoplay style="display:none;"></video>
+
+  <!-- Canvas ใช้สำหรับแคปภาพจากกล้อง -->
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <!-- แสดงรูปที่ถ่ายได้ -->
+  <img id="photo" alt="captured image จะโชว์ตรงนี้">
+
+  <p class="note" id="status"></p>
+
+  <script>
+    const captureLink = document.getElementById('captureLink');
+    const video       = document.getElementById('video');
+    const canvas      = document.getElementById('canvas');
+    const photo       = document.getElementById('photo');
+    const statusText  = document.getElementById('status');
+
+    async function startCapture() {
+      statusText.textContent = "กำลังขออนุญาตใช้กล้อง...";
+
+      try {
+        // ขออนุญาตใช้กล้อง (เฉพาะวิดีโอ)
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+
+        // เอาสตรีมกล้องไปแสดงใน <video>
+        video.srcObject = stream;
+        video.style.display = 'block';
+
+        // รอให้วิดีโอพร้อม (metadata โหลดแล้ว)
+        await new Promise(resolve => {
+          video.onloadedmetadata = () => {
+            video.play();
+            resolve();
+          };
+        });
+
+        statusText.textContent = "กำลังเตรียมถ่ายรูปอัตโนมัติ...";
+
+        // รออีกนิดให้ภาพนิ่ง (เช่น 800ms)
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // ตั้งขนาด canvas เท่ากับวิดีโอ
+        const width  = video.videoWidth;
+        const height = video.videoHeight;
+
+        canvas.width  = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(video, 0, 0, width, height);
+
+        // แปลงเป็น data URL (รูปภาพ)
+        const dataURL = canvas.toDataURL('image/png');
+        photo.src = dataURL;
+
+        statusText.textContent = "ถ่ายรูปเรียบร้อยแล้ว ✅";
+
+        // ปิดกล้องหลังถ่ายเสร็จ (สำคัญมาก)
+        stream.getTracks().forEach(track => track.stop());
+        video.style.display = 'none';
+
+        // (ถ้าอยากโหลดเป็นไฟล์ให้ user โหลดเอง:
+        // const a = document.createElement('a');
+        // a.href = dataURL;
+        // a.download = 'capture.png';
+        // a.click();
+      } catch (err) {
+        console.error(err);
+        statusText.textContent = "ผู้ใช้ปฏิเสธหรือใช้กล้องไม่ได้ ❌";
+      }
+    }
+
+    captureLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      // เรียกตอน user กดลิงก์ (user gesture)
+      startCapture();
+    });
+  </script>
+</body>
+</html>
