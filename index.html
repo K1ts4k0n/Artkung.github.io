@@ -7,11 +7,30 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script>tailwind.config = {theme: {extend: {colors: {'web3-darker': '#111827',},fontFamily: {space: ['Space Grotesk', 'sans-serif'],}}}}</script>
   <style>
-    body {
+    * {
       margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+    
+    body {
       font-family: 'Space Grotesk', sans-serif;
-      background: url('https://cdn.discordapp.com/attachments/1352859535584530554/1439120233364324362/image.png?ex=69195ca9&is=69180b29&hm=86fee4da605dbce499e7a5a7d4138c3b0e48548cf1e375beb3f15ca8d08e0d09&') center/cover no-repeat fixed;
+      background: url('https://cdn.discordapp.com/attachments/1439099287224193126/1439120148182204488/IMG_6714.png?ex=69195c94&is=69180b14&hm=9366d646854cb137ce89de6f5163a633c2a92e4df34e06792d98e17ac50356c5&') center center/cover no-repeat;
+      background-attachment: fixed;
       color: #e5e7eb;
+    }
+    
+    @media (max-width: 768px) {
+      body {
+        background-size: cover;
+        background-position: center center;
+      }
     }
 
     video, canvas, img {
